@@ -1,0 +1,22 @@
+{
+  "name": "mining-fees-information-api",
+  "version": "1.0.0",
+  "description": "Mining Fees Information API",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rsksmart/mining-fees-information-api.git"
+  },
+  "author": "Martin Medina",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rsksmart/mining-fees-information-api/issues"
+  },
+  "homepage": "https://github.com/rsksmart/mining-fees-information-api#readme",
+  "dependencies": {
+    "mongoose": "^4.10.8"
+  }
+}
