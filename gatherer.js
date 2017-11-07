@@ -17,21 +17,42 @@ var web3 = new Web3();
 var url = 'http://localhost:4444';
 web3.setProvider(new web3.providers.HttpProvider(url));
 
-var filter = web3.eth.filter("latest");
-filter.watch(function(error, blockhash){
-    if (!error) {
-    	printFeePaymentInformation(blockhash);
-    } else {
-    	console.log(error);
-    }
+var alive = null;
+var pollingToGatherInfoOnlyWhenNodeIsAlive = setInterval(gatherInfoWhenNodeIsAlive, 500);
 
-});
+function gatherInfoWhenNodeIsAlive() {
+	web3.eth.getBlockNumber(function(error){
+		var newAlive = !error;
+		console.log(newAlive);
+		if (newAlive !== alive) {
+			onChangeAlive(newAlive);
+		}
+		alive = newAlive;
+	})
+}
+
+function onChangeAlive(isAlive) {
+	if(!isAlive) {
+		return;
+	}
+
+	var filter = web3.eth.filter("latest");
+	filter.watch(function(error, blockhash){
+		if(error) {
+			console.log(error);
+		}
+
+    	printFeePaymentInformation(blockhash);
+	});
+}
 
 var sampleFee = createSampleInformationFee();
 // miningDb.createFeePayment(sampleFee);
 
 
 function printFeePaymentInformation(blockhash) {
+    
+    const remascFeeTopic = "0x000000000000000000000000000000006d696e696e675f6665655f746f706963";
 
     var block = web3.eth.getBlock(blockhash);
 
@@ -45,11 +66,10 @@ function printFeePaymentInformation(blockhash) {
     var remascTxReceipt = web3.eth.getTransactionReceipt(remascTxHash);
     // console.log(remascTxReceipt.logs);
 
-    var remasc_fee_topic = "0x000000000000000000000000000000006d696e696e675f6665655f746f706963";
-
     remascTxReceipt.logs.forEach(function(log) {
         
-        if(log.topics[0] == remasc_fee_topic) {
+    	var topicName = log.topics[0];
+        if(topicName == remascFeeTopic) {
 
             console.log("log index: " + log.logIndex);
 
@@ -57,20 +77,39 @@ function printFeePaymentInformation(blockhash) {
             var data = Buffer.from(dataWithoutHexInitalizer, 'hex');
             var dataDecoded = RLP.decode(data);
 
-            console.log("payer blockhash: " + dataDecoded[0].toString('hex'));
+            var payToAddress = log.topics[1];
+            var payerBlockhash = dataDecoded[0].toString('hex');
+            var amountPaid = new BN(dataDecoded[1].toString('hex'), 16);
+
+            console.log("payer blockhash: " + payerBlockhash);
 
             // just a maturity check, not mandatory
             var payerBlock = web3.eth.getBlock("0x" + dataDecoded[0].toString('hex'));  
             console.log("payer block number: " + payerBlock.number);
 
-            console.log("pay to address: " + log.topics[1]);
-
-            var a = new BN(dataDecoded[1].toString('hex'), 16);
-            console.log("value: " + a);
+            console.log("pay to address: " + payToAddress);
+            console.log("value: " + amountPaid);
 
             console.log("----");
+
+            var fee = createInformationFee(payerBlock, remascTxHash, payToAddress, amountPaid);
+            console.log(fee);
         }
     });
+}
+
+function createInformationFee(payerBlock, senderTx, payToAddress, amount) {
+	var block = {};
+	block.number = payerBlock.number;
+	block.hash = payerBlock.hash;
+
+	var feeInfo = {};
+	feeInfo.block = block
+	feeInfo.sender_tx = senderTx;
+	feeInfo.to_address = payToAddress;
+	feeInfo.amount = amount;
+
+	return feeInfo;
 }
 
 function createSampleInformationFee() {
