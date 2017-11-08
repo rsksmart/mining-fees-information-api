@@ -9,7 +9,9 @@ require('./models/feePaymentModel.js');
 
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost/mining'); 
-var miningDb = require('./data/miningDb.js');
+
+var MiningRepository = require('./data/miningDb.js');
+var miningRepository = new MiningRepository(mongoose);
 
 var Web3 = require('web3');
 var web3 = new Web3();
@@ -46,17 +48,17 @@ function onChangeAlive(isAlive) {
 		}
 
 		feePaymentService.processForBlock(blockhash);
-    	// printFeePaymentInformation(blockhash);
 	});
 }
 
+// currently used for repository testing
 var sampleFee = createSampleInformationFee();
-// miningDb.createFeePayment(sampleFee);
+// miningRepository.createFeePayment(sampleFee);
 
 function createSampleInformationFee() {
 	var block = {};
 	block.number = 1;
-	block.hash =  "test_hash_01";
+	block.hash =  "test_hash_02";
 
 	var sampleFee = {};
 	sampleFee.block = block
