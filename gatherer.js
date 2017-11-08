@@ -5,12 +5,12 @@ var RLP = require('rlp');
 const BN = require('bn.js');
 
 var mongoose = require('mongoose');
-require('./models/feePaymentModel.js');
+require('./data/models/feePaymentModel');
 
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost/mining'); 
 
-var MiningRepository = require('./data/miningDb.js');
+var MiningRepository = require('./data/miningRepository');
 var miningRepository = new MiningRepository(mongoose);
 
 var Web3 = require('web3');
@@ -53,7 +53,7 @@ function onChangeAlive(isAlive) {
 
 // currently used for repository testing
 var sampleFee = createSampleInformationFee();
-// miningRepository.createFeePayment(sampleFee);
+miningRepository.createFeePayment(sampleFee);
 
 function createSampleInformationFee() {
 	var block = {};
