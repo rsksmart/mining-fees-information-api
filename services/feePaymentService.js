@@ -5,32 +5,41 @@ const BN = require('bn.js');
 const remascFeeTopic = "0x000000000000000000000000000000006d696e696e675f6665655f746f706963";
 
 var web3;
+var miningRepo;
 
 module.exports = FeePaymentService;
 
-function FeePaymentService(web3Module) {
+function FeePaymentService(miningRepository, web3Module) {
     web3 = web3Module;
+    miningRepo = miningRepository;
 }
 
 FeePaymentService.prototype.processForBlock = function(blockhash) {
-
     var process = async.compose(saveToDb, getPaymentFee);
     
     process(blockhash, function (err, result) {
-        result.forEach(function(fee) {
-            console.log(fee);
-            console.log("-------");
-        });
+        console.log("done");
     });
 }
 
-// not implemented for real yet
 function saveToDb(collection, callback) {
+    collection.forEach(function(fee) {
+        miningRepo.createFeePaymentPromise(fee)
+        .then(function(feeResult) {
+            console.log(fee);
+            console.log("-------");
+        })
+        .catch(function(error) {
+            if(error) {
+                console.log(error);
+            }
+        });
+    });
+
     callback(null, collection);
 }
 
 function getPaymentFee(blockhash, callback) {
-
     async.waterfall([
         function(callback) {
             web3.eth.getBlock(blockhash, function(error, block) {
@@ -40,16 +49,14 @@ function getPaymentFee(blockhash, callback) {
 
                 console.log("REMASC log block: " + block.number);
 
-                // REMASC Tx is always the last Tx of the block.
+                // REMASC Tx is always the last tx of the block.
                 remascTxHash = block.transactions[block.transactions.length - 1];
 
                 callback(null, remascTxHash);
             });
         },
         function(remascTxHash, callback) {
-
             var fees = [];
-
             web3.eth.getTransactionReceipt(remascTxHash, function(error, remascTxReceipt) {
                 
                 if(error) {
@@ -83,18 +90,16 @@ function getPaymentFee(blockhash, callback) {
                     callback(null, fees);
                 });
             });
-    }
-    ],function(err, data) {
+    }],
+    function(err, data) {
         if(err) {
             console.log(err);
         } 
-
         callback(null, data);
     });
 }
 
 function getInfoFromLogsData(log) {
-
     var dataWithoutHexInitalizer = log.data.substring(2, log.data.length);
     var data = Buffer.from(dataWithoutHexInitalizer, 'hex');
     var dataDecoded = RLP.decode(data);

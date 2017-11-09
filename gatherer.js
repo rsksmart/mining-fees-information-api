@@ -20,7 +20,7 @@ var url = 'http://localhost:4444';
 web3.setProvider(new web3.providers.HttpProvider(url));
 
 var FeePaymentService = require('./services/feePaymentService');
-var feePaymentService = new FeePaymentService(web3);
+var feePaymentService = new FeePaymentService(miningRepository, web3);
 
 var alive = null;
 var pollingToGatherInfoOnlyWhenNodeIsAlive = setInterval(gatherInfoWhenNodeIsAlive, 500);
@@ -49,22 +49,4 @@ function onChangeAlive(isAlive) {
 
 		feePaymentService.processForBlock(blockhash);
 	});
-}
-
-// currently used for repository testing
-var sampleFee = createSampleInformationFee();
-miningRepository.createFeePayment(sampleFee);
-
-function createSampleInformationFee() {
-	var block = {};
-	block.number = 1;
-	block.hash =  "test_hash_02";
-
-	var sampleFee = {};
-	sampleFee.block = block
-	sampleFee.sender_tx = "sender_tx_01";
-	sampleFee.to_address = "to_address";
-	sampleFee.amount = 127;
-
-	return sampleFee;
 }
