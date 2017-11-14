@@ -10,37 +10,37 @@ module.exports = class FeePaymentService {
     }
 
     async processForBlock(blockhash) {
-        const paymentFees = await this.getPaymentFee(blockhash);
-        console.log(paymentFees);
-        
-        await this.saveToDb(paymentFees);
-        console.log("done");
-    }
-
-    async getPaymentFee(blockhash) {
         try {
-            const block = await this.proxiedWeb3.eth.getBlock(blockhash);
-            // const [...otherTransactions, remascTxHash] = block.transactions;
-            const remascTxHash = block.transactions[block.transactions.length - 1];
-            const remascTxReceipt = await this.proxiedWeb3.eth.getTransactionReceipt(remascTxHash);
-
-            const feesPromises = remascTxReceipt.logs.map(async log => {
-                const topicName = log.topics[0];
-                if(topicName == this.remascFeeTopic) {
-                    const payToAddress = log.topics[1];
-
-                    const {payerBlockhash, amountPaid} = this.getInfoFromLogsData(log);
-
-                    const payerBlock = await this.proxiedWeb3.eth.getBlock("0x" + payerBlockhash);
-                    return this.createInformationFee(payerBlock, remascTxHash, payToAddress, amountPaid);
-                }
-            });
-            return await Promise.all(feesPromises);
-
+            const paymentFees = await this.getPaymentFee(blockhash);
+            console.log(paymentFees);
+            
+            await this.saveToDb(paymentFees);
+            console.log("done");
         } catch(e) {
             console.log("Exception: ", e); 
             return;
         }
+    }
+
+    async getPaymentFee(blockhash) {
+        const block = await this.proxiedWeb3.eth.getBlock(blockhash);
+        // const [...otherTransactions, remascTxHash] = block.transactions;
+        const remascTxHash = block.transactions[block.transactions.length - 1];
+        const remascTxReceipt = await this.proxiedWeb3.eth.getTransactionReceipt(remascTxHash);
+
+        const feesPromises = remascTxReceipt.logs.map(async log => {
+            const topicName = log.topics[0];
+            if(topicName == this.remascFeeTopic) {
+                const payToAddress = log.topics[1];
+
+                const {payerBlockhash, amountPaid} = this.getInfoFromLogsData(log);
+
+                const payerBlock = await this.proxiedWeb3.eth.getBlock("0x" + payerBlockhash);
+                return this.createInformationFee(payerBlock, remascTxHash, payToAddress, amountPaid);
+            }
+        });
+
+        return await Promise.all(feesPromises);
     }
 
     async saveToDb(paymentFees) {
