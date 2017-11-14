@@ -17,18 +17,6 @@ module.exports = class FeePaymentService {
         console.log("done");
     }
 
-    async saveToDb(paymentFees) {
-
-        let i = 0;
-        for(const fee of paymentFees) {
-            const t = i;
-            console.log("start save ", t);
-            await this.miningRepo.createFeePaymentPromise(fee);
-            console.log("finish save ", t);
-            i++;
-        }
-    }
-
     async getPaymentFee(blockhash) {
         try {
             const block = await this.proxiedWeb3.eth.getBlock(blockhash);
@@ -52,6 +40,30 @@ module.exports = class FeePaymentService {
         } catch(e) {
             console.log("Exception: ", e); 
             return;
+        }
+    }
+
+    async saveToDb(paymentFees) {
+        try {
+            let i = 0;
+            for(const fee of paymentFees) {
+                const t = i;
+                console.log("start save ", t);
+                await this.miningRepo.createFeePaymentPromise(fee);
+                console.log("finish save ", t);
+                i++;
+            }
+        } catch (e) {
+            rollback(paymentFees);
+        }
+    }
+
+    async rollback(paymentFees) {
+        const blockNumber = paymentFees[0].block.number;
+        try {
+            await this.miningRepo.deleteFeePaymentPromise(fee);
+        } catch (e) {
+            console.log("Rollback failed for block number: ", blockNumber);
         }
     }
 
