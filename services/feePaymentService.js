@@ -1,126 +1,109 @@
-var async = require('async');
 var RLP = require('rlp');
 const BN = require('bn.js');
 
-const remascFeeTopic = "0x000000000000000000000000000000006d696e696e675f6665655f746f706963";
+// using a custom promisify, we might want to change it later
+// const {promisify} = require('util');
+const promisify = (inner) =>
+  new Promise((resolve, reject) =>
+    inner((err, res) => {
+      if (err) { reject(err) }
 
-var web3;
-var miningRepo;
+      resolve(res);
+    })
+  );
 
-module.exports = FeePaymentService;
+// simple proxy to promisify the web3 api. It doesn't deal with edge cases like web3.eth.filter and contracts.
+const proxiedWeb3Handler = {
+  // override getter                               
+  get: (target, name) => {              
+    const inner = target[name];                            
+    if (inner instanceof Function) {                       
+      // Return a function with the callback already set.  
+      return (...args) => promisify(cb => inner(...args, cb));
+     } else if (typeof inner === 'object') {                
+      // wrap inner web3 stuff                             
+      return new Proxy(inner, proxiedWeb3Handler);         
+    } else {                                               
+      return inner;                                        
+    }                                                      
+  },                                                       
+};
 
-function FeePaymentService(miningRepository, web3Module) {
-    web3 = web3Module;
-    miningRepo = miningRepository;
-}
+module.exports = class FeePaymentService {
+    constructor(miningRepository, web3Module) {
+        this.remascFeeTopic = "0x000000000000000000000000000000006d696e696e675f6665655f746f706963";
+        this.proxiedWeb3 = new Proxy(web3Module, proxiedWeb3Handler);
+        this.miningRepo = miningRepository;
+    }
 
-FeePaymentService.prototype.processForBlock = function(blockhash) {
-    var process = async.compose(saveToDb, getPaymentFee);
-    
-    process(blockhash, function (err, result) {
+    async processForBlock(blockhash) {
+        const paymentFees = await this.getPaymentFee(blockhash);
+        console.log(paymentFees);
+        
+        await this.saveToDb(paymentFees);
         console.log("done");
-    });
-}
+    }
 
-function saveToDb(collection, callback) {
-    collection.forEach(function(fee) {
-        miningRepo.createFeePaymentPromise(fee)
-        .then(function(feeResult) {
-            console.log(fee);
-            console.log("-------");
-        })
-        .catch(function(error) {
-            if(error) {
-                console.log(error);
-            }
-        });
-    });
+    async saveToDb(paymentFees) {
 
-    callback(null, collection);
-}
+        let i = 0;
+        for(const fee of paymentFees) {
+            const t = i;
+            console.log("start save ", t);
+            await this.miningRepo.createFeePaymentPromise(fee);
+            console.log("finish save ", t);
+            i++;
+        }
+    }
 
-function getPaymentFee(blockhash, callback) {
-    async.waterfall([
-        function(callback) {
-            web3.eth.getBlock(blockhash, function(error, block) {
-                if(error) {
-                    callback(error, null);
+    async getPaymentFee(blockhash) {
+        try {
+            const block = await this.proxiedWeb3.eth.getBlock(blockhash);
+            // const [...otherTransactions, remascTxHash] = block.transactions;
+            const remascTxHash = block.transactions[block.transactions.length - 1];
+            const remascTxReceipt = await this.proxiedWeb3.eth.getTransactionReceipt(remascTxHash);
+
+            const feesPromises = remascTxReceipt.logs.map(async log => {
+                const topicName = log.topics[0];
+                if(topicName == this.remascFeeTopic) {
+                    const payToAddress = log.topics[1];
+
+                    const {payerBlockhash, amountPaid} = this.getInfoFromLogsData(log);
+
+                    const payerBlock = await this.proxiedWeb3.eth.getBlock("0x" + payerBlockhash);
+                    return this.createInformationFee(payerBlock, remascTxHash, payToAddress, amountPaid);
                 }
-
-                console.log("REMASC log block: " + block.number);
-
-                // REMASC Tx is always the last tx of the block.
-                remascTxHash = block.transactions[block.transactions.length - 1];
-
-                callback(null, remascTxHash);
             });
-        },
-        function(remascTxHash, callback) {
-            var fees = [];
-            web3.eth.getTransactionReceipt(remascTxHash, function(error, remascTxReceipt) {
-                
-                if(error) {
-                    callback(error, null);
-                }
+            return await Promise.all(feesPromises);
 
-                async.eachSeries(remascTxReceipt.logs, function(log, callback) {
-                    var topicName = log.topics[0];
-                    if(topicName == remascFeeTopic) {
-                        var payToAddress = log.topics[1];
+        } catch(e) {
+            console.log("Exception: ", e); 
+            return;
+        }
+    }
 
-                        var logsDataInfo = getInfoFromLogsData(log);
-                        var payerBlockhash = logsDataInfo[0];
-                        var amountPaid = logsDataInfo[1];
+    getInfoFromLogsData(log) {
+        var dataWithoutHexInitalizer = log.data.substring(2, log.data.length);
+        var data = Buffer.from(dataWithoutHexInitalizer, 'hex');
+        var dataDecoded = RLP.decode(data);
 
-                        web3.eth.getBlock("0x" + payerBlockhash, function(gbError, payerBlock) {
-                            if (gbError) {
-                                callback(gbError, null);        
-                            }
+        var payToAddress = log.topics[1];
+        var payerBlockhash = dataDecoded[0].toString('hex');
+        var amountPaid = new BN(dataDecoded[1].toString('hex'), 16);
 
-                            var fee = createInformationFee(payerBlock, remascTxHash, payToAddress, amountPaid);
-                            fees.push(fee);
+        return { payerBlockhash, amountPaid };
+    }
 
-                            callback();
-                        });  
-                    }
-                }, function(error) {
-                    if(error) {
-                        console.log(error);
-                    } 
-                    callback(null, fees);
-                });
-            });
-    }],
-    function(err, data) {
-        if(err) {
-            console.log(err);
-        } 
-        callback(null, data);
-    });
-}
+    createInformationFee(payerBlock, senderTx, payToAddress, amount) {
+        var block = { number: payerBlock.number, hash: payerBlock.hash };
 
-function getInfoFromLogsData(log) {
-    var dataWithoutHexInitalizer = log.data.substring(2, log.data.length);
-    var data = Buffer.from(dataWithoutHexInitalizer, 'hex');
-    var dataDecoded = RLP.decode(data);
+        var feeInfo = {
+            block: block,
+            sender_tx: senderTx,
+            to_address: payToAddress,
+            amount: amount
+        };
 
-    var payToAddress = log.topics[1];
-    var payerBlockhash = dataDecoded[0].toString('hex');
-    var amountPaid = new BN(dataDecoded[1].toString('hex'), 16);
-
-    return [payerBlockhash, amountPaid];
-}
-
-function createInformationFee(payerBlock, senderTx, payToAddress, amount) {
-    var block = {};
-    block.number = payerBlock.number;
-    block.hash = payerBlock.hash;
-
-    var feeInfo = {};
-    feeInfo.block = block
-    feeInfo.sender_tx = senderTx;
-    feeInfo.to_address = payToAddress;
-    feeInfo.amount = amount;
-
-    return feeInfo;
+        return feeInfo;
+    }
 }

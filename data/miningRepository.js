@@ -8,14 +8,7 @@ function MiningRepository(mongooseModule) {
     feePaymentModel = mongoose.model('FeePayments');
 }
 
-MiningRepository.prototype.createFeePaymentPromise = function(data) {
-	return new Promise((resolve, reject) => { 
-	    var feePayment = new feePaymentModel(data);
-	    feePayment.save(function(error, payment) {
-		    if (error) {
-		        reject(error);
-			}
-			resolve();
-		});
-  });
+MiningRepository.prototype.createFeePaymentPromise = async function(data) {
+
+	return new feePaymentModel(data).save();
 };

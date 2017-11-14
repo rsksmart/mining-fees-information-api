@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-var async = require('async');
 var RLP = require('rlp');
 const BN = require('bn.js');
 
