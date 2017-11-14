@@ -14,10 +14,8 @@ var MiningRepository = require('./data/miningRepository');
 var miningRepository = new MiningRepository(mongoose);
 
 var Web3 = require('web3');
-var web3 = new Web3();
-
 var url = 'http://localhost:4444';
-web3.setProvider(new web3.providers.HttpProvider(url));
+var web3 = new Web3(new Web3.providers.HttpProvider(url));
 
 var FeePaymentService = require('./services/feePaymentService');
 var feePaymentService = new FeePaymentService(miningRepository, web3);
