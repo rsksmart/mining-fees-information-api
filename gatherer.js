@@ -2,6 +2,7 @@
 
 var RLP = require('rlp');
 const BN = require('bn.js');
+const logger = require('./services/logger');
 
 var mongoose = require('mongoose');
 require('./data/models/feePaymentModel');
@@ -19,6 +20,8 @@ var web3 = new Web3(new Web3.providers.HttpProvider(url));
 var FeePaymentService = require('./services/feePaymentService');
 var feePaymentService = new FeePaymentService(miningRepository, web3);
 
+logger.info("Starting gatherer based on RSK node at: ", url);
+
 var alive = null;
 var pollingToGatherInfoOnlyWhenNodeIsAlive = setInterval(gatherInfoWhenNodeIsAlive, 500);
 
@@ -35,13 +38,14 @@ function gatherInfoWhenNodeIsAlive() {
 
 function onChangeAlive(isAlive) {
 	if(!isAlive) {
+		log.info("Aliveness changed to: ", isAlive ? "alive" : "not alive");
 		return;
 	}
 
 	var filter = web3.eth.filter("latest");
 	filter.watch(function(error, blockhash){
 		if(error) {
-			console.log(error);
+			log.error("Error on watch filter: ", error);
 		}
 
 		feePaymentService.processForBlock(blockhash);

@@ -1,6 +1,7 @@
 var RLP = require('rlp');
 const BN = require('bn.js');
 const proxiedWeb3Handler = require('../model/proxiedWeb3');
+const logger = require('../services/logger');
 
 module.exports = class FeePaymentService {
     constructor(miningRepository, web3Module) {
@@ -11,13 +12,15 @@ module.exports = class FeePaymentService {
 
     async processForBlock(blockhash) {
         try {
+            logger.info("Processing mining fees for blockhash: ", blockhash);
             const paymentFees = await this.getPaymentFee(blockhash);
-            console.log(paymentFees);
+            
+            logger.info("Payment fees: ", JSON.stringify(paymentFees));
             
             await this.saveToDb(paymentFees);
-            console.log("done");
+            logger.info("Mining fees processed successfully.");
         } catch(e) {
-            console.log("Exception: ", e); 
+            logger.error("Exception: ", e); 
             return;
         }
     }
@@ -63,7 +66,7 @@ module.exports = class FeePaymentService {
         try {
             await this.miningRepo.deleteFeePaymentPromise(fee);
         } catch (e) {
-            console.log("Rollback failed for block number: ", blockNumber);
+            logger.error("Rollback failed for block number: ", blockNumber);
         }
     }
 
