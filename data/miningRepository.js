@@ -1,19 +1,14 @@
-var mongoose;
-var feePaymentModel;
+module.exports = class MiningRepository {
+	constructor(mongooseModule) {
+    	this.mongoose = mongooseModule;
+    	this.feePaymentModel = this.mongoose.model('FeePayments');
+    }
 
-module.exports = MiningRepository;
+    async createFeePaymentPromise(data) {
+		return new this.feePaymentModel(data).save();
+    }
 
-function MiningRepository(mongooseModule) {
-    mongoose = mongooseModule;
-    feePaymentModel = mongoose.model('FeePayments');
+    async deleteFeePaymentPromise(blockNumber) {
+		return this.feePaymentModel.remove({ "block.number": blockNumber }).exec();
+    }
 }
-
-MiningRepository.prototype.createFeePaymentPromise = async function(data) {
-
-	return new feePaymentModel(data).save();
-};
-
-MiningRepository.prototype.deleteFeePaymentPromise = async function(blockNumber) {
-
-	return feePaymentModel.remove({ "block.number": blockNumber }).exec();
-};
