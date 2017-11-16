@@ -48,13 +48,8 @@ module.exports = class FeePaymentService {
 
     async saveToDb(paymentFees) {
         try {
-            let i = 0;
             for(const fee of paymentFees) {
-                const t = i;
-                console.log("start save ", t);
                 await this.miningRepo.createFeePaymentPromise(fee);
-                console.log("finish save ", t);
-                i++;
             }
         } catch (e) {
             logger.error("Payment fee save failed: ", e);
