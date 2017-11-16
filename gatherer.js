@@ -26,6 +26,10 @@ logger.info("Starting gatherer based on RSK node at: ", url);
 var alive = null;
 var pollingToGatherInfoOnlyWhenNodeIsAlive = setInterval(gatherInfoWhenNodeIsAlive, 500);
 
+// Triggers the filter.watch() for new blocks when the node is alive. 
+// This needs to be done this way because by default filter.watch() stops working 
+// when node is down (makes total sense). The problem comes when the node is up and running again. 
+// This is not detected by filter.watch() and this workaround should be used.
 function gatherInfoWhenNodeIsAlive() {
 	web3.eth.getBlockNumber(function(error){
 		var newAlive = !error;
