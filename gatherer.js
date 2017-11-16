@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-var RLP = require('rlp');
+const config = require('./config.json');
+const RLP = require('rlp');
 const BN = require('bn.js');
 const logger = require('./services/logger');
 
@@ -8,13 +9,13 @@ var mongoose = require('mongoose');
 require('./data/models/feePaymentModel');
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/mining'); 
+mongoose.connect(config.mongodb.connectionString); 
 
 var MiningRepository = require('./data/miningRepository');
 var miningRepository = new MiningRepository(mongoose);
 
 var Web3 = require('web3');
-var url = 'http://localhost:4444';
+var url = 'http://' + config.rskj.host + ':' + config.rskj.port;
 var web3 = new Web3(new Web3.providers.HttpProvider(url));
 
 var FeePaymentService = require('./services/feePaymentService');

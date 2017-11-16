@@ -1,0 +1,10 @@
+{   
+    "rskj" : {
+        "host": "localhost",
+        "port": 4444
+    },
+    "mongodb": 
+        {
+            "connectionString": "mongodb://localhost/mining"
+        }
+}
