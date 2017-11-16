@@ -33,7 +33,7 @@ var pollingToGatherInfoOnlyWhenNodeIsAlive = setInterval(gatherInfoWhenNodeIsAli
 function gatherInfoWhenNodeIsAlive() {
 	web3.eth.getBlockNumber(function(error){
 		var newAlive = !error;
-		process.stdout.write(".");
+		// process.stdout.write(".");
 		if (newAlive !== alive) {
 			onChangeAlive(newAlive);
 		}

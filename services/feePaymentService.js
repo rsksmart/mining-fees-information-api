@@ -39,6 +39,13 @@ module.exports = class FeePaymentService {
                 const {payerBlockhash, amountPaid} = this.getInfoFromLogsData(log);
 
                 const payerBlock = await this.proxiedWeb3.eth.getBlock("0x" + payerBlockhash);
+
+                // RemascTxHash is stored in DB as sender_tx. RSK node RemascTxHash value depends on the 
+                // height of the blockchain where the tx is. That means that the hash will be the same and 
+                // it does not matter if the block where the information was obtained is a mainchain block
+                // or a sibling or a block that at that time was not in the mainchain but endedep up been.
+                // This does not happen with the blockhash and that is the reason why only the sender_tx 
+                // is stored on DB.
                 return this.createInformationFee(payerBlock, remascTxHash, payToAddress, amountPaid);
             }
         });
