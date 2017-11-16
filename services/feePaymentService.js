@@ -57,7 +57,8 @@ module.exports = class FeePaymentService {
                 i++;
             }
         } catch (e) {
-            rollback(paymentFees);
+            logger.error("Payment fee save failed: ", e);
+            this.rollback(paymentFees);
         }
     }
 
