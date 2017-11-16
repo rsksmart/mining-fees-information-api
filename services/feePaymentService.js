@@ -51,7 +51,7 @@ module.exports = class FeePaymentService {
             this.deleteExisting(paymentFees);
 
             for(const fee of paymentFees) {
-                await this.miningRepo.createFeePaymentPromise(fee);
+                await this.miningRepo.createFeePayment(fee);
             }
         } catch (e) {
             logger.error("Payment fee save failed: ", e);
@@ -67,14 +67,14 @@ module.exports = class FeePaymentService {
         const blockNumber = paymentFees[0].block.number;
         const feePaymentsFromDb = await this.miningRepo.readFeePayment(blockNumber);
         if (feePaymentsFromDb.length > 0) { 
-            await this.miningRepo.deleteFeePaymentPromise(blockNumber);
+            await this.miningRepo.deleteFeePayment(blockNumber);
         };
     }
 
     async rollback(paymentFees) {
         const blockNumber = paymentFees[0].block.number;
         try {
-            await this.miningRepo.deleteFeePaymentPromise(blockNumber);
+            await this.miningRepo.deleteFeePayment(blockNumber);
         } catch (e) {
             logger.error("Rollback failed for block number: ", blockNumber);
         }

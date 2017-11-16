@@ -4,11 +4,11 @@ module.exports = class MiningRepository {
     	this.feePaymentModel = this.mongoose.model('FeePayments');
     }
 
-    async createFeePaymentPromise(data) {
+    async createFeePayment(data) {
 		return new this.feePaymentModel(data).save();
     }
 
-    async deleteFeePaymentPromise(blockNumber) {
+    async deleteFeePayment(blockNumber) {
 		return this.feePaymentModel.remove({ "block.number": blockNumber }).exec();
     }
 
