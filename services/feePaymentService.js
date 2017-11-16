@@ -48,6 +48,8 @@ module.exports = class FeePaymentService {
 
     async saveToDb(paymentFees) {
         try {
+            this.deleteExisting(paymentFees);
+
             for(const fee of paymentFees) {
                 await this.miningRepo.createFeePaymentPromise(fee);
             }
@@ -57,10 +59,22 @@ module.exports = class FeePaymentService {
         }
     }
 
+    async deleteExisting(paymentFees) {
+        if (paymentFees.length == 0) {
+            return;
+        }
+
+        const blockNumber = paymentFees[0].block.number;
+        const feePaymentsFromDb = await this.miningRepo.readFeePayment(blockNumber);
+        if (feePaymentsFromDb.length > 0) { 
+            await this.miningRepo.deleteFeePaymentPromise(blockNumber);
+        };
+    }
+
     async rollback(paymentFees) {
         const blockNumber = paymentFees[0].block.number;
         try {
-            await this.miningRepo.deleteFeePaymentPromise(fee);
+            await this.miningRepo.deleteFeePaymentPromise(blockNumber);
         } catch (e) {
             logger.error("Rollback failed for block number: ", blockNumber);
         }

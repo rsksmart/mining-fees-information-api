@@ -11,4 +11,8 @@ module.exports = class MiningRepository {
     async deleteFeePaymentPromise(blockNumber) {
 		return this.feePaymentModel.remove({ "block.number": blockNumber }).exec();
     }
+
+    async readFeePayment(blockNumber) {
+		return this.feePaymentModel.find({ "block.number": blockNumber }).exec();
+    }
 }
