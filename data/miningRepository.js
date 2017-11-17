@@ -1,7 +1,7 @@
 module.exports = class MiningRepository {
 	constructor(mongooseModule) {
     	this.mongoose = mongooseModule;
-    	this.feePaymentModel = this.mongoose.model('FeePayments');
+    	this.feePaymentModel = this.mongoose.model('FeePayment');
     }
 
     async createFeePayment(data) {

@@ -48,4 +48,4 @@ var FeePaymentSchema = new Schema({
   }
 });
 
-module.exports = mongoose.model('FeePayments', FeePaymentSchema);
+module.exports = mongoose.model('FeePayment', FeePaymentSchema);
