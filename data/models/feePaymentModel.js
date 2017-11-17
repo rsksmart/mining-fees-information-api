@@ -32,6 +32,20 @@ var FeePaymentSchema = new Schema({
     type: Date,
     default: Date.now
   }
+},
+ {
+  toObject: {
+    transform: function (doc, ret) {
+      delete ret._id;
+      delete ret.__v;
+    }
+  },
+  toJSON: {
+    transform: function (doc, ret) {
+      delete ret._id;
+      delete ret.__v;
+    }
+  }
 });
 
 module.exports = mongoose.model('FeePayments', FeePaymentSchema);

@@ -19,6 +19,7 @@
   "dependencies": {
     "async": "^2.5.0",
     "bn.js": "^4.11.8",
+    "express": "^4.16.2",
     "moment": "^2.19.2",
     "mongoose": "4.10.8",
     "rlp": "^2.0.0",
