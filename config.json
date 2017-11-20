@@ -10,6 +10,11 @@
     },
     "api": 
     {
-        "port": 8080
+        "port": 8080,
+        "remasc": 
+            {
+                "maturity": 10,
+                "syntheticSpan": 5
+            } 
     }
 }
