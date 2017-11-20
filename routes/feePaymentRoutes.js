@@ -25,23 +25,21 @@ module.exports = class FeePaymentRoutes {
                     const callResult = {};
 
                     if(blockNumber < that.config.api.remasc.maturity + that.config.api.remasc.syntheticSpan) {
-
                         callResult.message = "Block number " + blockNumber + " hasn't reach maturity + synthetic span yet.";
                         callResult.value = null;
 
                         return res.json(callResult);
                     }
 
-                    // WIP: Hardcoded value must be changed for value retrieved from DB
-                    const lastDb = 2000;
-                    if(lastDb < blockNumber && blockNumber < lastDb + that.config.api.remasc.maturity) {
+                    const lastBlock = (await that.miningRepo.readLastInsertedFeePayment()).pop().block;
+                    if(lastBlock.number < blockNumber && blockNumber < lastBlock.number + that.config.api.remasc.maturity + 1) {
                         callResult.message = "Block number " + blockNumber + " hasn't reach maturity yet.";
                         callResult.value = null;
 
                         return res.json(callResult);
                     }
 
-                    if(blockNumber > lastDb + that.config.api.remasc.maturity) {
+                    if(blockNumber > lastBlock.number + that.config.api.remasc.maturity) {
                         callResult.message = "Block number " + blockNumber + " hasn't been mined yet.";
                         callResult.value = null;
 

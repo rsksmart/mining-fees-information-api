@@ -19,4 +19,8 @@ module.exports = class MiningRepository {
     async readFeePayment(blockNumber, blockHash) {
 		return this.feePaymentModel.find({ "block.number": blockNumber, "block.hash": blockHash }).exec();
     }
+
+    async readLastInsertedFeePayment() {
+		return this.feePaymentModel.find().sort({ "block.number": -1 }).limit(1).exec();
+    }
 }
