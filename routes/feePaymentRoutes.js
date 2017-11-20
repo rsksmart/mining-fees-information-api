@@ -22,33 +22,30 @@ module.exports = class FeePaymentRoutes {
                 try {
                     const blockNumber = req.params.number;
                     const blockHash = req.params.hash;
-                    const callResult = {};
+                    let callResult = {};
 
                     if(blockNumber < that.config.api.remasc.maturity + that.config.api.remasc.syntheticSpan) {
-                        callResult.message = "Block number " + blockNumber + " hasn't reach maturity + synthetic span yet.";
-                        callResult.value = null;
+                        callResult = that.buildResult("Block number " + blockNumber + " hasn't reach maturity + synthetic span yet.");
 
                         return res.json(callResult);
                     }
 
                     const lastBlock = (await that.miningRepo.readLastInsertedFeePayment()).pop().block;
                     if(lastBlock.number < blockNumber && blockNumber < lastBlock.number + that.config.api.remasc.maturity + 1) {
-                        callResult.message = "Block number " + blockNumber + " hasn't reach maturity yet.";
-                        callResult.value = null;
+                        callResult = that.buildResult("Block number " + blockNumber + " hasn't reach maturity yet.");
 
                         return res.json(callResult);
                     }
 
                     if(blockNumber > lastBlock.number + that.config.api.remasc.maturity) {
-                        callResult.message = "Block number " + blockNumber + " hasn't been mined yet.";
-                        callResult.value = null;
+                        callResult = that.buildResult("Block number " + blockNumber + " hasn't been mined yet.");
 
                         return res.json(callResult);
                     }
 
                     // Block number is in a valid range
                     const paymentFees = await that.miningRepo.readFeePayment(blockNumber, blockHash);
-                    callResult.message = "Payment fees found for block number " + blockNumber;
+                    callResult.message = "Payment fees " + (paymentFees.length > 0 ? "" : "not ") + "found for block number " + blockNumber;
                     callResult.value = paymentFees;
 
                     return res.json(callResult);
@@ -57,5 +54,13 @@ module.exports = class FeePaymentRoutes {
                     res.status(500).send('Something broke!');
                 }
             });
+    }
+
+    buildResult(message) {
+        const callResult = {};
+        callResult.message = message;
+        callResult.value = null;
+
+        return callResult;
     }
 }
