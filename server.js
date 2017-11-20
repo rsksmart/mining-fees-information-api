@@ -17,7 +17,7 @@ const miningRepository = new MiningRepository(mongoose);
 
 const router = express.Router();             
 
-router.route('/feepayment/block/:number/:hash')
+router.route('/feepayment/block/:number([0-9]+)/:hash(0[xX]{1}[a-fA-F0-9]{64}$)')
 
     .get(async function(req, res) {
     	try {
@@ -33,8 +33,10 @@ router.route('/feepayment/block/:number/:hash')
 app.use('/api', router);
 
 app.use(function (req, res, next) {
-  res.status(404).send("Sorry, can't find that!");
+
+	res.status(404).send("Sorry, can't find that!");
 })
 
 app.listen(config.api.port);
 logger.info('API listens on port ' + config.api.port);
+
