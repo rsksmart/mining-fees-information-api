@@ -43,7 +43,7 @@ function gatherInfoWhenNodeIsAlive() {
 
 function onChangeAlive(isAlive) {
 	if(!isAlive) {
-		log.info("Aliveness changed to: ", isAlive ? "alive" : "not alive");
+		log.info("Alive state changed to: ", isAlive ? "alive" : "not alive");
 		return;
 	}
 
