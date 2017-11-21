@@ -49,8 +49,8 @@ module.exports = class FeePaymentRoutes {
                     callResult.value = paymentFees;
 
                     return res.json(callResult);
-                } catch (err) {
-                    logger.error(err);
+                } catch (e) {
+                    logger.error("Exception: ", e); 
                     res.status(500).send(that.buildResult('Something broke!'));
                 }
             });

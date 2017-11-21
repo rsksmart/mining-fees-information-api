@@ -12,39 +12,27 @@ module.exports = class FeePaymentService {
     }
 
     async readLastInsertedFeePayment() {
-        try {
-            logger.info("Reading last inserted fee payment.");
+        logger.info("Reading last inserted fee payment.");
 
-            const feePayment = await this.miningRepo.readLastInsertedFeePayment();
+        const feePayment = await this.miningRepo.readLastInsertedFeePayment();
 
-            logger.info("Last inserted fee payment read.");
-            return feePayment;
-        } catch(e) {
-            logger.error("Exception: ", e); 
-            return;
-        }
+        logger.info("Last inserted fee payment read.");
+        return feePayment;
     }
 
     async readForBlock(blocknumber, blockhash) {
-        try {
-            logger.info("Reading mining fees for blocknumber:", blocknumber, "blockhash:", blockhash);
+        logger.info("Reading mining fees for blocknumber:", blocknumber, "blockhash:", blockhash);
 
-            let paymentFees = await this.miningRepo.readFeePayment(blocknumber, blockhash);
-            if(paymentFees.length > 0) {
-                return paymentFees;
-            }
-
-            paymentFees = await this.processForBlockByNumber(blocknumber, blockhash);
-
+        let paymentFees = await this.miningRepo.readFeePayment(blocknumber, blockhash);
+        if(paymentFees.length > 0) {
             return paymentFees;
-        } catch(e) {
-            logger.error("Exception: ", e); 
-            return;
         }
-        finally
-        {
-            logger.info("Mining fees read.");
-        }
+
+        paymentFees = await this.processForBlockByNumber(blocknumber, blockhash);
+
+        logger.info("Mining fees read.");
+
+        return paymentFees;
     }
 
     async processForBlockByNumber(blocknumber, blockhash) {
