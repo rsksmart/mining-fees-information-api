@@ -1,9 +1,9 @@
 const logger = require('../services/logger');
 
 module.exports = class FeePaymentRoutes {
-    constructor(miningRepository, configFile, router) {
+    constructor(feePaymentService, configFile, router) {
         this.router = router;
-        this.miningRepo = miningRepository;
+        this.feePaymentService = feePaymentService;
         this.config = configFile;
 
         this.setFeePaymentPerBlockNumberAndHashRoute();
@@ -30,7 +30,7 @@ module.exports = class FeePaymentRoutes {
                         return res.json(callResult);
                     }
 
-                    const lastBlock = (await that.miningRepo.readLastInsertedFeePayment()).pop().block;
+                    const lastBlock = (await that.feePaymentService.readLastInsertedFeePayment()).pop().block;
                     if(lastBlock.number < blockNumber && blockNumber < lastBlock.number + that.config.api.remasc.maturity + 1) {
                         callResult = that.buildResult("Block number " + blockNumber + " hasn't reach maturity yet.");
 
@@ -44,14 +44,14 @@ module.exports = class FeePaymentRoutes {
                     }
 
                     // Block number is in a valid range
-                    const paymentFees = await that.miningRepo.readFeePayment(blockNumber, blockHash);
+                    const paymentFees = await that.feePaymentService.readForBlock(Number(blockNumber), blockHash);
                     callResult.message = "Payment fees " + (paymentFees.length > 0 ? "" : "not ") + "found for block number " + blockNumber;
                     callResult.value = paymentFees;
 
                     return res.json(callResult);
                 } catch (err) {
                     logger.error(err);
-                    res.status(500).send('Something broke!');
+                    res.status(500).send(that.buildResult('Something broke!'));
                 }
             });
     }

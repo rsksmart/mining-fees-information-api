@@ -4,29 +4,103 @@ const proxiedWeb3Handler = require('../model/proxiedWeb3');
 const logger = require('../services/logger');
 
 module.exports = class FeePaymentService {
-    constructor(miningRepository, web3Module) {
+    constructor(miningRepository, web3Module, config) {
         this.remascFeeTopic = "0x000000000000000000000000000000006d696e696e675f6665655f746f706963";
         this.proxiedWeb3 = new Proxy(web3Module, proxiedWeb3Handler);
         this.miningRepo = miningRepository;
+        this.config = config;
     }
 
-    async processForBlock(blockhash) {
+    async readLastInsertedFeePayment() {
         try {
-            logger.info("Processing mining fees for blockhash: ", blockhash);
-            const paymentFees = await this.getPaymentFee(blockhash);
-            
-            logger.info("Payment fees: ", JSON.stringify(paymentFees));
-            
-            await this.saveToDb(paymentFees);
-            logger.info("Mining fees processed successfully.");
+            logger.info("Reading last inserted fee payment.");
+
+            const feePayment = await this.miningRepo.readLastInsertedFeePayment();
+
+            logger.info("Last inserted fee payment read.");
+            return feePayment;
         } catch(e) {
             logger.error("Exception: ", e); 
             return;
         }
     }
 
-    async getPaymentFee(blockhash) {
+    async readForBlock(blocknumber, blockhash) {
+        try {
+            logger.info("Reading mining fees for blocknumber:", blocknumber, "blockhash:", blockhash);
+
+            let paymentFees = await this.miningRepo.readFeePayment(blocknumber, blockhash);
+            if(paymentFees.length > 0) {
+                return paymentFees;
+            }
+
+            paymentFees = await this.processForBlockByNumber(blocknumber, blockhash);
+
+            return paymentFees;
+        } catch(e) {
+            logger.error("Exception: ", e); 
+            return;
+        }
+        finally
+        {
+            logger.info("Mining fees read.");
+        }
+    }
+
+    async processForBlockByNumber(blocknumber, blockhash) {
+        try {
+            logger.info("Processing mining fees for blockhash: ", blockhash);
+            const paymentFees = await this.getPaymentFeeByNumber(blocknumber);
+            
+            // Check if input blockhash matches blockhash retrieved by number
+            if(paymentFees[0].block.hash !== blockhash) {
+                return [];
+            }
+
+            logger.info("Payment fees: ", JSON.stringify(paymentFees));
+            
+            await this.saveToDb(paymentFees);
+            logger.info("Mining fees processed.");
+
+            return paymentFees;
+        } catch(e) {
+            logger.error("Exception: ", e); 
+            return;
+        }
+    }
+
+    async processForBlock(blockhash) {
+        try {
+            logger.info("Processing mining fees for blockhash: ", blockhash);
+            const paymentFees = await this.getPaymentFeeByHash(blockhash);
+            
+            logger.info("Payment fees: ", JSON.stringify(paymentFees));
+            
+            await this.saveToDb(paymentFees);
+            logger.info("Mining fees processed.");
+        } catch(e) {
+            logger.error("Exception: ", e); 
+            return;
+        }
+    }
+
+    async getPaymentFeeByHash(blockhash) {
         const block = await this.proxiedWeb3.eth.getBlock(blockhash);
+        const fees = await this.getPaymentFee(block);
+
+        return fees;
+    }
+
+    async getPaymentFeeByNumber(blocknumber) { 
+        // fees for the required block are paid by REMASC tx after maturity
+        blocknumber += this.config.api.remasc.maturity;
+        const block = await this.proxiedWeb3.eth.getBlock(blocknumber);
+        const fees = await this.getPaymentFee(block);
+
+        return fees;
+    }
+
+    async getPaymentFee(block) {
         // const [...otherTransactions, remascTxHash] = block.transactions;
         const remascTxHash = block.transactions[block.transactions.length - 1];
         const remascTxReceipt = await this.proxiedWeb3.eth.getTransactionReceipt(remascTxHash);

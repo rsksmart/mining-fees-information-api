@@ -19,7 +19,7 @@ var url = 'http://' + config.rskj.host + ':' + config.rskj.port;
 var web3 = new Web3(new Web3.providers.HttpProvider(url));
 
 var FeePaymentService = require('./services/feePaymentService');
-var feePaymentService = new FeePaymentService(miningRepository, web3);
+var feePaymentService = new FeePaymentService(miningRepository, web3, config);
 
 logger.info("Starting gatherer based on RSK node at: ", url);
 
