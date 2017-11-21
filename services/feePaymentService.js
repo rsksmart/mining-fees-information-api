@@ -25,51 +25,41 @@ module.exports = class FeePaymentService {
 
         let paymentFees = await this.miningRepo.readFeePayment(blocknumber, blockhash);
         if(paymentFees.length > 0) {
+            logger.info("Mining fees read.");
             return paymentFees;
         }
 
         paymentFees = await this.processForBlockByNumber(blocknumber, blockhash);
 
         logger.info("Mining fees read.");
-
         return paymentFees;
     }
 
     async processForBlockByNumber(blocknumber, blockhash) {
-        try {
-            logger.info("Processing mining fees for blockhash: ", blockhash);
-            const paymentFees = await this.getPaymentFeeByNumber(blocknumber);
-            
-            // Check if input blockhash matches blockhash retrieved by number
-            if(paymentFees[0].block.hash !== blockhash) {
-                return [];
-            }
-
-            logger.info("Payment fees: ", JSON.stringify(paymentFees));
-            
-            await this.saveToDb(paymentFees);
-            logger.info("Mining fees processed.");
-
-            return paymentFees;
-        } catch(e) {
-            logger.error("Exception: ", e); 
-            return;
+        logger.info("Processing mining fees for blockhash: ", blockhash);
+        const paymentFees = await this.getPaymentFeeByNumber(blocknumber);
+        
+        // Check if input blockhash matches blockhash retrieved by number
+        if(paymentFees[0].block.hash !== blockhash) {
+            return [];
         }
+
+        logger.info("Payment fees: ", JSON.stringify(paymentFees));
+        
+        await this.saveToDb(paymentFees);
+        logger.info("Mining fees processed.");
+
+        return paymentFees;
     }
 
     async processForBlock(blockhash) {
-        try {
-            logger.info("Processing mining fees for blockhash: ", blockhash);
-            const paymentFees = await this.getPaymentFeeByHash(blockhash);
-            
-            logger.info("Payment fees: ", JSON.stringify(paymentFees));
-            
-            await this.saveToDb(paymentFees);
-            logger.info("Mining fees processed.");
-        } catch(e) {
-            logger.error("Exception: ", e); 
-            return;
-        }
+        logger.info("Processing mining fees for blockhash: ", blockhash);
+        const paymentFees = await this.getPaymentFeeByHash(blockhash);
+        
+        logger.info("Payment fees: ", JSON.stringify(paymentFees));
+        
+        await this.saveToDb(paymentFees);
+        logger.info("Mining fees processed.");
     }
 
     async getPaymentFeeByHash(blockhash) {

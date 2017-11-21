@@ -53,6 +53,10 @@ function onChangeAlive(isAlive) {
 			log.error("Error on watch filter: ", error);
 		}
 
-		feePaymentService.processForBlock(blockhash);
+		try {
+			await feePaymentService.processForBlock(blockhash);
+		} catch (e) {
+            logger.error("Exception: ", e); 
+		}
 	});
 }
