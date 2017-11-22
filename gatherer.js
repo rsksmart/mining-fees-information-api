@@ -48,7 +48,7 @@ function onChangeAlive(isAlive) {
 	}
 
 	var filter = web3.eth.filter("latest");
-	filter.watch(function(error, blockhash){
+	filter.watch(async function(error, blockhash){
 		if(error) {
 			log.error("Error on watch filter: ", error);
 		}
