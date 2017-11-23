@@ -41,14 +41,14 @@ function gatherInfoWhenNodeIsAlive() {
 
 function onChangeAlive(isAlive) {
 	if(!isAlive) {
-		log.info("Alive state changed to: ", isAlive ? "alive" : "not alive");
+		logger.info("Alive state changed to: ", isAlive ? "alive" : "not alive");
 		return;
 	}
 
 	var filter = web3.eth.filter("latest");
 	filter.watch(async function(error, blockhash){
 		if(error) {
-			log.error("Error on watch filter: ", error);
+			logger.error("Error on watch filter: ", error);
 		}
 
 		try {
