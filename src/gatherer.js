@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const config = require('./config.json');
+const config = require('./configs/config.json');
 const RLP = require('rlp');
 const BN = require('bn.js');
 const logger = require('./services/logger');

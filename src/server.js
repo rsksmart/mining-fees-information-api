@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const config = require('./config.json');
+const config = require('./configs/config.json');
 const express = require('express');
 const app = express();
 
