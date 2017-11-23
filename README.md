@@ -1,6 +1,10 @@
 # Mining Fees Information API
 
-## Setup
+## Requirements
+
+`node.js > v8.9.0`
+
+`mongoDB v3.4.10`
 
 ```bash
 npm install
