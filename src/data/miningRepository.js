@@ -1,5 +1,5 @@
 module.exports = class MiningRepository {
-	constructor(mongooseModule) {
+    constructor(mongooseModule) {
     	this.mongoose = mongooseModule;
     	this.feePaymentModel = this.mongoose.model('FeePayment');
     }
