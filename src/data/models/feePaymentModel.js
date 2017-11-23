@@ -24,9 +24,8 @@ var FeePaymentSchema = new Schema({
     required: true,
   },
   amount: {
-    type: Number,
+    type: String,
     required: true,
-    min: 0
   },
   created_date: {
     type: Date,

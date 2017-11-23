@@ -1,4 +1,4 @@
-var RLP = require('rlp');
+const RLP = require('rlp');
 const BN = require('bn.js');
 const proxiedWeb3Handler = require('../model/proxiedWeb3');
 const logger = require('../services/logger');
@@ -144,9 +144,8 @@ module.exports = class FeePaymentService {
         var data = Buffer.from(dataWithoutHexInitalizer, 'hex');
         var dataDecoded = RLP.decode(data);
 
-        var payToAddress = log.topics[1];
         var payerBlockhash = dataDecoded[0].toString('hex');
-        var amountPaid = new BN(dataDecoded[1].toString('hex'), 16);
+        var amountPaid = (new BN(dataDecoded[1].toString('hex'), 16)).toString(10);
 
         return { payerBlockhash, amountPaid };
     }
