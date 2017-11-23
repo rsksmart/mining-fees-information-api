@@ -17,7 +17,7 @@ module.exports = class FeePaymentService {
         const feePayment = await this.miningRepo.readLastInsertedFeePayment();
 
         logger.info("Last inserted fee payment read.");
-        return feePayment;
+        return feePayment.length === 0 ? false : feePayment[0];
     }
 
     async readForBlock(blocknumber, blockhash) {

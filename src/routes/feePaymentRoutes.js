@@ -30,7 +30,13 @@ module.exports = class FeePaymentRoutes {
                         return res.json(callResult);
                     }
 
-                    const lastBlock = (await that.feePaymentService.readLastInsertedFeePayment()).pop().block;
+                    const lastFeePayed = (await that.feePaymentService.readLastInsertedFeePayment());
+                    if (!lastFeePayed) {
+                        // There are no entries in DB.
+                        throw "Can't determine blockchain height. Please turn on gatherer app."
+                    }
+                    
+                    const lastBlock = lastFeePayed.block;
                     if(lastBlock.number < blockNumber && blockNumber < lastBlock.number + that.config.api.remasc.maturity + 1) {
                         callResult = that.buildResult("Block number " + blockNumber + " hasn't reach maturity yet.");
 
