@@ -51,7 +51,7 @@ Payment fees found, example response is
         {
             "sender_tx": "0x5e04a60ef2646a0122082076c6b81e7bf02f019f8c7971d16a485e2a12f126cc",
             "to_address": "0x000000000000000000000000dabadabadabadabadabadabadabadabadaba0001",
-            "amount": 0,
+            "amount": "0",
             "created_date": "2017-11-16T23:45:49.829Z",
             "block": {
                 "number": 1887,
@@ -61,7 +61,7 @@ Payment fees found, example response is
         {
             "sender_tx": "0x5e04a60ef2646a0122082076c6b81e7bf02f019f8c7971d16a485e2a12f126cc",
             "to_address": "0x00000000000000000000000028fdc38c327f4a3bbdf9501fd3a01ac7228c7af7",
-            "amount": 0,
+            "amount": "12340",
             "created_date": "2017-11-16T23:45:49.835Z",
             "block": {
                 "number": 1887,
