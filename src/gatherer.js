@@ -46,15 +46,11 @@ function onChangeAlive(isAlive) {
 	}
 
 	var filter = web3.eth.filter("latest");
-	filter.watch(async function(error, blockhash){
+	filter.watch(function(error, blockhash){
 		if(error) {
 			logger.error("Error on watch filter: ", error);
 		}
 
-		try {
-			await feePaymentService.processForBlock(blockhash);
-		} catch (e) {
-            logger.error("Exception: ", e); 
-		}
+		feePaymentService.processForBlock(blockhash);
 	});
 }

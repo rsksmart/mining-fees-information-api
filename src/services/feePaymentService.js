@@ -53,13 +53,18 @@ module.exports = class FeePaymentService {
     }
 
     async processForBlock(blockhash) {
-        logger.info("Processing mining fees for blockhash: ", blockhash);
-        const paymentFees = await this.getPaymentFeeByHash(blockhash);
-        
-        logger.info("Payment fees: ", JSON.stringify(paymentFees));
-        
-        await this.saveToDb(paymentFees);
-        logger.info("Mining fees processed.");
+        try {
+            logger.info("Processing mining fees for blockhash: ", blockhash);
+            const paymentFees = await this.getPaymentFeeByHash(blockhash);
+            
+            logger.info("Payment fees: ", JSON.stringify(paymentFees));
+            
+            await this.saveToDb(paymentFees);
+            logger.info("Mining fees processed.");
+
+            } catch (e) {
+                logger.error("Exception: ", e); 
+        }
     }
 
     async getPaymentFeeByHash(blockhash) {
