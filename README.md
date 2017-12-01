@@ -1,6 +1,10 @@
 # Mining Fees Information API
 
+Service that provides an API to mining pools so they can query for their rewards. This API is not part of the RskJ node but retrieves information from it.
+
 ## Requirements
+
+`RskJ node`
 
 `node.js > v8.9.0`
 
@@ -12,7 +16,7 @@ npm install
 
 ## Configuration
 
-Settings like RskJ node url, mongoDB connection string and API port can be configured at `config.json` file.
+Settings like RskJ node url, mongoDB connection string and API port can be configured at `src/configs/config.json` file.
 
 ## Run
 
